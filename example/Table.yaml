@@ -1,0 +1,43 @@
+---
+apiVersion: aws.microdc/v1
+kind: DynamoDB
+metadata:
+  name: envname.appname.table
+spec:
+  app: appname
+  environment: envname
+  config: >
+    '{
+      "TableName" : "${TABLE_NAME}",
+        "KeySchema": [
+            { "AttributeName": "accountNumber", "KeyType": "HASH"}
+        ],
+        "AttributeDefinitions": [
+            { "AttributeName": "accountNumber", "AttributeType": "S" },
+            { "AttributeName": "id", "AttributeType": "S" }
+        ],
+      "GlobalSecondaryIndexes": [
+        {
+            "IndexName": "id-index",
+            "KeySchema": [
+                {
+                    "AttributeName": "id",
+                    "KeyType": "HASH"
+                }
+            ],
+            "Projection": {
+                "ProjectionType": "ALL"
+            },
+            "ProvisionedThroughput": {
+                "ReadCapacityUnits": 1,
+                "WriteCapacityUnits": 1
+            }
+        }
+        ],
+      "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        }
+    }'
+  debug: true
+  table: table
