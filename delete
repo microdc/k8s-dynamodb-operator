@@ -1,0 +1,15 @@
+#!/bin/bash
+
+source common.sh
+
+start
+
+if ! aws dynamodb scan --table-name ${TABLE_NAME} > /dev/null 2>&1; then
+  echo "ERR ${TABLE_NAME} doesn't exist!" >&2
+else
+  aws dynamodb delete-table --table-name ${TABLE_NAME} >&2
+  aws dynamodb wait table-not-exists --table-name ${TABLE_NAME} >&2
+fi
+
+end
+
