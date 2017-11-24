@@ -4,7 +4,7 @@ source common.sh
 
 start
 
-if aws dynamodb scan --table-name ${TABLE_NAME} > /dev/null 2>&1; then
+if aws dynamodb scan --table-name "${TABLE_NAME}" > /dev/null 2>&1; then
   echo "${TABLE_NAME} already exists - Nothing to do" >&2
 else
   aws dynamodb create-table --cli-input-json "${CONFIG}" >&2
@@ -12,9 +12,9 @@ fi
 
 if ! [ -z "${TTL_BOOLEAN}" ] || ! [ -z "${TTL_ATTRIBUTE}" ]; then
   echo "Updating TTL settings"  >&2
-  aws dynamodb wait table-exists --table-name ${TABLE_NAME} >&2
-  aws dynamodb update-time-to-live --table-name ${TABLE_NAME} \
-                                   --time-to-live-specification Enabled=${TTL_BOOLEAN},AttributeName=${TTL_ATTRIBUTE} >&2
+  aws dynamodb wait table-exists --table-name "${TABLE_NAME}" >&2
+  aws dynamodb update-time-to-live --table-name "${TABLE_NAME}" \
+                                   --time-to-live-specification Enabled="${TTL_BOOLEAN}",AttributeName="${TTL_ATTRIBUTE}" >&2
 fi
 
 end
