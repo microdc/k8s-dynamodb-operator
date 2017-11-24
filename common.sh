@@ -1,3 +1,4 @@
+#!/bin/bash
 
 start () {
   echo "START ========================" >&2
@@ -13,8 +14,9 @@ export TTL_ATTRIBUTE="${K8S_SPEC_TTL_ATTRIBUTE}"
 export ENVIRONMENT="${K8S_SPEC_ENVIRONMENT:=none}"
 export TABLE="${K8S_SPEC_TABLE:=none}"
 export TABLE_NAME="${ENVIRONMENT}.${APP}.${TABLE}"
-export CONFIG="$(echo $K8S_SPEC_CONFIG | envsubst)"
 export DEBUG="${K8S_SPEC_DEBUG:=false}"
+CONFIG=$(echo "${K8S_SPEC_CONFIG}" | envsubst)
+export CONFIG
 
 if [[ "$DEBUG" ]]; then
   cat >&2 << EOF
