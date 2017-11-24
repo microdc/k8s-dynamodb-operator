@@ -16,7 +16,7 @@ log() {
 
 test_shell_files () {
   log "Testing shell files"
-  grep -Rl '/bin/bash' ./* | xargs shellcheck -e SC2044 -x || err "Shellcheck errors"
+  grep -Rl '/bin/bash' ./* | xargs shellcheck -e SC2044,SC1091 || err "Shellcheck errors"
 }
 
 test_yaml_files () {
