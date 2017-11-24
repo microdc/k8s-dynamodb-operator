@@ -26,3 +26,7 @@ TTL_ATTRIBUTE='example'
 ```
 kubectl delete dynamodb envname.appname.table
 ```
+
+### Tests
+Requires: shellcheck and python(for yaml test)
+Tests run at container build. test.sh can bes used for local command line testing.
