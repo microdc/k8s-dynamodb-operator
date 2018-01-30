@@ -1,5 +1,5 @@
 ---
-apiVersion: aws.microdc/v1
+apiVersion: aws.microdc.io/v1
 kind: DynamoDB
 metadata:
   name: test-table
