@@ -14,6 +14,6 @@ RUN pip install --upgrade --no-cache-dir awscli \
                                          git+https://github.com/side8/k8s-operator@8ae6aec
 RUN curl https://storage.googleapis.com/kubernetes-release/release/v1.8.6/bin/linux/amd64/kubectl -o /usr/local/bin/kubectl
 RUN chmod +x /usr/local/bin/kubectl
-COPY apply delete common.sh crd.yaml /app/
+COPY startup.sh apply delete common.sh crd.yaml /app/
 WORKDIR /app
 ENTRYPOINT ["./startup.sh"]
