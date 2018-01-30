@@ -21,9 +21,7 @@ test_shell_files () {
 
 test_yaml_files () {
   log "Testing yaml files"
-  for file in $(find . -name '*.y*ml'); do
-    python3 -c 'import yaml,sys;yaml.safe_load(sys.stdin)' < "${file}" || err "${file} has syntax errors"
-  done
+  yamllint .
 }
 
 main () {

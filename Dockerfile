@@ -1,4 +1,5 @@
 FROM equalexpertsmicrodc/ubuntu-testing-container
+RUN apt-get install -y yamllint
 RUN mkdir /app
 WORKDIR /app
 COPY ./ /app/
