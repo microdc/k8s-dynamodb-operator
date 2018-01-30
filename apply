@@ -7,6 +7,7 @@ start
 metadata_short_sha=$(echo "${K8S_METADATA_UID}" | sha1sum | cut -c -7)
 table_name="${metadata_short_sha}.${K8S_METADATA_NAMESPACE}.${K8S_METADATA_NAME}"
 
+# jq extracts spec fields with truthy values to filter out nulls for sane input to the aws cli later
 cli_input_json=$(echo -E "${K8S}" | jq -c '.spec | {AttributeDefinitions, ProvisionedThroughput, StreamSpecification} | with_entries(select(.value))')
 
 # ttl_input_json=$(echo -E "${K8S}" | jq -c '.spec | {TimeToLiveSpecification}')
@@ -15,6 +16,7 @@ cli_input_json=$(echo -E "${K8S}" | jq -c '.spec | {AttributeDefinitions, Provis
 if [[ -z "${K8S_STATUS_TABLEARN}" ]] ; then
     echo "no arn recorded, creating/retrieving table" >&2
 
+    # jq extracts spec and constructs command line arguments from it for the aws cli later
     # shellcheck disable=SC2016
     args=$(echo -E "$K8S" | jq -r '.spec as $spec | "" |
         if $spec.KeySchema then "\(.) --key-schema \($spec.KeySchema)" else . end |
@@ -27,6 +29,7 @@ if [[ -z "${K8S_STATUS_TABLEARN}" ]] ; then
 	                               --cli-input-json "${cli_input_json}" | \
 				       jq '.TableDescription' || aws dynamodb describe-table --table-name "${table_name}" | jq '.Table')
 
+# jq checks if the CRD spec is a subset of the CRD status and if the TableStatus isn't active in order to decide if it should use the aws cli to get and update the current table status.
 elif echo -E "${K8S}" | jq -e '. as $k8s | .status | {AttributeDefinitions, ProvisionedThroughput, StreamSpecification} | contains($k8s.spec | {AttributeDefinitions, ProvisionedThroughput, StreamSpecification}) | not' >/dev/null || [[ "${K8S_STATUS_TABLESTATUS}" != "ACTIVE" ]] ; then
     [[ "${K8S_STATUS_TABLESTATUS}" != "ACTIVE" ]] && echo "status isn't ACTIVE, getting latest status" >&2 || echo "spec doesn't match, updating" >&2
 
