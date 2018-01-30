@@ -1,15 +1,14 @@
 #!/bin/bash
 
+set -eo pipefail
 source common.sh
 
 start
 
-if ! aws dynamodb scan --table-name "${TABLE_NAME}" > /dev/null 2>&1; then
-  echo "ERR ${TABLE_NAME} doesn't exist!" >&2
-else
-  aws dynamodb delete-table --table-name "${TABLE_NAME}" >&2
-  aws dynamodb wait table-not-exists --table-name "${TABLE_NAME}" >&2
-fi
+metadata_short_sha=$(echo "${K8S_METADATA_UID}" | sha1sum | cut -c -7)
+table_name="${metadata_short_sha}.${K8S_METADATA_NAMESPACE}.${K8S_METADATA_NAME}"
+
+aws dynamodb delete-table --table-name "${table_name}" >&2
 
 end
 

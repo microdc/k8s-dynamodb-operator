@@ -4,17 +4,43 @@ source common.sh
 
 start
 
-if aws dynamodb scan --table-name "${TABLE_NAME}" > /dev/null 2>&1; then
-  echo "${TABLE_NAME} already exists - Nothing to do" >&2
+metadata_short_sha=$(echo "${K8S_METADATA_UID}" | sha1sum | cut -c -7)
+table_name="${metadata_short_sha}.${K8S_METADATA_NAMESPACE}.${K8S_METADATA_NAME}"
+
+cli_input_json=$(echo -E "${K8S}" | jq -c '.spec | {AttributeDefinitions, ProvisionedThroughput, StreamSpecification} | with_entries(select(.value))')
+
+# ttl_input_json=$(echo -E "${K8S}" | jq -c '.spec | {TimeToLiveSpecification}')
+
+# shellcheck disable=SC2016
+if [[ -z "${K8S_STATUS_TABLEARN}" ]] ; then
+    echo "no arn recorded, creating/retrieving table" >&2
+
+    # shellcheck disable=SC2016
+    args=$(echo -E "$K8S" | jq -r '.spec as $spec | "" |
+        if $spec.KeySchema then "\(.) --key-schema \($spec.KeySchema)" else . end |
+        if $spec.GlobalSecondaryIndexes then "\(.) --global-secondary-indexes \($spec.GlobalSecondaryIndexes)" else . end |
+        if $spec.LocalSecondaryIndexes then "\(.) --local-secondary-indexes \($spec.LocalSecondaryIndexes)" else . end')
+
+    # shellcheck disable=SC2086
+    table=$(aws dynamodb create-table --table-name "${table_name}" \
+	                               ${args} \
+	                               --cli-input-json "${cli_input_json}" | \
+				       jq '.TableDescription' || aws dynamodb describe-table --table-name "${table_name}" | jq '.Table')
+
+elif echo -E "${K8S}" | jq -e '. as $k8s | .status | {AttributeDefinitions, ProvisionedThroughput, StreamSpecification} | contains($k8s.spec | {AttributeDefinitions, ProvisionedThroughput, StreamSpecification}) | not' >/dev/null || [[ "${K8S_STATUS_TABLESTATUS}" != "ACTIVE" ]] ; then
+    [[ "${K8S_STATUS_TABLESTATUS}" != "ACTIVE" ]] && echo "status isn't ACTIVE, getting latest status" >&2 || echo "spec doesn't match, updating" >&2
+
+    # TODO generate GlobalSecondaryIndexes updates
+    # shellcheck disable=SC2015
+    table=$([[ "${K8S_STATUS_TABLESTATUS}" == "ACTIVE" ]] && aws dynamodb update-table --table-name "${table_name}" --cli-input-json "${cli_input_json}" | jq '.TableDescription' || aws dynamodb describe-table --table-name "${table_name}" | jq '.Table')
+
 else
-  aws dynamodb create-table --cli-input-json "${CONFIG}" >&2
+    table=$(echo "${K8S}" | jq '.status')
+    # shellcheck disable=SC2016
+    kubectl apply -f <(echo -E "${table}" | jq --arg name "${K8S_KIND,,}-${K8S_METADATA_NAME}" --arg namespace "${K8S_METADATA_NAMESPACE}" \
+        'map_values(.|tostring) | {apiVersion: "v1", kind: "ConfigMap", metadata: {name: $name, namespace: $namespace}, data: .}') >&2
 fi
 
-if ! [ -z "${TTL_BOOLEAN}" ] || ! [ -z "${TTL_ATTRIBUTE}" ]; then
-  echo "Updating TTL settings"  >&2
-  aws dynamodb wait table-exists --table-name "${TABLE_NAME}" >&2
-  aws dynamodb update-time-to-live --table-name "${TABLE_NAME}" \
-                                   --time-to-live-specification Enabled="${TTL_BOOLEAN}",AttributeName="${TTL_ATTRIBUTE}" >&2
-fi
+echo "${table}"
 
 end
