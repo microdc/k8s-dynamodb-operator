@@ -1,23 +1,19 @@
 FROM equalexpertsmicrodc/ubuntu-testing-container
+RUN apt-get install -y yamllint
 RUN mkdir /app
 WORKDIR /app
 COPY ./ /app/
 RUN ./test.sh
 
-FROM alpine
-ENV AWSCLI_VERSION=1.11.180
+FROM python:3.6
 RUN mkdir /app
-RUN apk add --no-cache python3 git && \
-    python3 -m ensurepip && \
-    rm -r /usr/lib/python*/ensurepip && \
-    pip3 install --upgrade pip setuptools && \
-    if [ ! -e /usr/bin/pip ]; then ln -s pip3 /usr/bin/pip ; fi && \
-    rm -r /root/.cache
-RUN pip install --upgrade --no-cache-dir pip \
-                                         awscli=="${AWSCLI_VERSION}" \
-                                         git+https://github.com/side8/k8s-operator
-ADD https://storage.googleapis.com/kubernetes-release/release/v1.7.9/bin/linux/amd64/kubectl /usr/local/bin/kubectl
+RUN apt-get update && apt-get install git gettext-base
+RUN curl -L https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 -o /usr/local/bin/jq
+RUN chmod +x /usr/local/bin/jq
+RUN pip install --upgrade --no-cache-dir awscli \
+                                         git+https://github.com/side8/k8s-operator@8ae6aec
+RUN curl https://storage.googleapis.com/kubernetes-release/release/v1.8.6/bin/linux/amd64/kubectl -o /usr/local/bin/kubectl
 RUN chmod +x /usr/local/bin/kubectl
-COPY apply delete common.sh crd.yaml /app/
+COPY startup.sh apply delete common.sh crd.yaml /app/
 WORKDIR /app
 ENTRYPOINT ["./startup.sh"]
