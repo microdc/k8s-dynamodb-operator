@@ -70,12 +70,10 @@ spec:
           env:
             - name: AWS_DEFAULT_REGION
               value: ap-southeast-2
-            - name: DEBUG
-              value: yo
           resources:
             requests:
-              memory: 64Mi
+              memory: 128Mi
               cpu: 50m
             limits:
-              memory: 64Mi
+              memory: 128Mi
               cpu: 50m
