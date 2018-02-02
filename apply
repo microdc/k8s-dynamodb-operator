@@ -40,8 +40,9 @@ elif echo -E "${K8S}" | jq -e '. as $k8s | .status | {AttributeDefinitions, Prov
 else
     table=$(echo "${K8S}" | jq '.status')
     # shellcheck disable=SC2016
-    kubectl apply -f <(echo -E "${table}" | jq --arg name "${K8S_KIND,,}-${K8S_METADATA_NAME}" --arg namespace "${K8S_METADATA_NAMESPACE}" \
-        'map_values(.|tostring) | {apiVersion: "v1", kind: "ConfigMap", metadata: {name: $name, namespace: $namespace}, data: .}') >&2
+    config_map=$(echo -E "${table}" | jq --arg name "${K8S_KIND,,}-${K8S_METADATA_NAME}" --arg namespace "${K8S_METADATA_NAMESPACE}" \
+        'map_values(.|tostring) | {apiVersion: "v1", kind: "ConfigMap", metadata: {name: $name, namespace: $namespace}, data: .}')
+    echo "${config_map}" | kubectl apply -f - >&2
 fi
 
 echo "${table}"
