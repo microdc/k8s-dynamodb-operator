@@ -8,6 +8,8 @@ start
 metadata_short_sha=$(echo "${K8S_METADATA_UID}" | sha1sum | cut -c -7)
 table_name="${metadata_short_sha}.${K8S_METADATA_NAMESPACE}.${K8S_METADATA_NAME}"
 
+kubectl -n "${K8S_METADATA_NAMESPACE}" delete configmap "${K8S_KIND,,}-${K8S_METADATA_NAME}" || true >&2
+
 # TODO assuming a table is already gone if the delete fails is a huge assumption
 #      rework to explicitly check
 aws dynamodb delete-table --table-name "${table_name}" || true >&2
