@@ -17,7 +17,7 @@ RUN curl -L https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 -
 RUN chmod +x /usr/local/bin/jq
 
 RUN pip install --upgrade --no-cache-dir awscli
-RUN pip install --upgrade --no-cache-dir git+https://github.com/side8/k8s-operator@6b117d9
+RUN pip install --upgrade --no-cache-dir git+https://github.com/side8/k8s-operator@fe49f1a
 
 RUN mkdir /app
 COPY startup.sh apply delete common.sh crd.yaml /app/
