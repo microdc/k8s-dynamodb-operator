@@ -1,7 +1,7 @@
-# ee-microdc-k8s-dynamodb-controller
+# microdc-k8s-dynamodb-operator
 A kubernetes controller for creating/deleting dynamodb tables based on the [side8/k8s-operator](https://github.com/side8/k8s-operator)
 
-Available on [Docker hub](https://hub.docker.com/r/equalexpertsmicrodc/k8s-dynamodb-controller/)
+Available on [Docker hub](https://hub.docker.com/r/microdc/k8s-dynamodb-controller/)
 
 
 ### Build docker container
